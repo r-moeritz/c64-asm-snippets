@@ -66,12 +66,12 @@ start:
         .byte 5, 147, 14, 8, 158, 0
         stx bkg
 
-        lda #27; screen on
+        lda #27 ; screen on
         sta vic
 
 topoftext:
         lda #0
-        ldx #varnum-1; init vars
+        ldx #varnum -1 ; init vars
 
 b1: 
         sta vars,x
@@ -83,7 +83,7 @@ b1:
 
 ; main key scan loop
 getkey: ; always return here
-        lda #>getkey-1
+        lda #>getkey
         pha
         lda #<getkey-1
         pha
@@ -95,7 +95,7 @@ b2:
         jsr getin
         beq b2
 
-        jsr reverse; y=0
+        jsr reverse ; y=0
 
 ; check command keys
 b3:
@@ -117,7 +117,7 @@ foundkey: ; jump to routine
 
 ; put character in text buffer
 put:
-        tax; save key
+        tax ; save key
         cmp #13
         beq f1
 
@@ -130,7 +130,7 @@ put:
         beq r1
 
 f1:
-        jsr testpos ; are we at end
+        jsr testpos ; are we at end?
         bcc f2
 
         jsr pshend ; make room if can
@@ -217,9 +217,9 @@ down:
         inc line+1
 f7:
         lda row
-        cmp #rows-1; last row check
+        cmp #rows-1 ; last row check
         bne f8
-        jmp topdown; scroll down
+        jmp topdown ; scroll down
 f8:
         inc row
 
@@ -265,7 +265,7 @@ b5:
         bpl b5
 
 f12:
-        inc txt; then forward 1 char
+        inc txt ; then forward 1 char
         bne f13
         inc txt+1
 f13:
@@ -553,7 +553,7 @@ f27:
         jmp window
 
 deleteln: ; delete line
-        ror disflg; display off
+        ror disflg ; display off
         jsr findeoln
         tya
         bne f28

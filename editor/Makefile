@@ -21,7 +21,7 @@ $(OBJDIR):
 	$(MKDIR) $(OBJDIR)
 
 clean:
-	$(RM) $(OBJDIR)
+	$(RM) $(OBJDIR) *.o
 
 # Rules
 $(PRG): $(BAS)
