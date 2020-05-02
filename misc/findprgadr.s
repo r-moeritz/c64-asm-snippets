@@ -12,6 +12,8 @@ findadr         jsr $f5ae ; rts
                 .byte $bd,$ff,$00 ; lda $00ff,x (force abs. x addr. mode)
                 ldy $0100,x ; high byte
 printadr        tax ; store low-byte in x
+                dex ; address returned is 2+, so
+                dex ; decrement twice
                 tya ; store high-byte in a
                 jsr linprt
 quit            rts
