@@ -3,15 +3,15 @@
 ; *** constants ***
 columns   = 40          ; screen size
 linesize  = 250         ; max allowed
-screenbeg = 1024+40     ; top of text scr
-screenend = 2024        ; end of text scr
+screenbeg = $428        ; top of text scr
+screenend = $7e8        ; end of text scr
 rows      = 24          ; screenend-screenbeg/columns
 
 ; *** important memory ***
 vic     = $d011
-bkg     = 53281
-bor     = 53280
-rptkey  = 650
+bkg     = $d021
+bor     = $d020
+rptkey  = $28a
 icrunch = $304
 input   = $200
 
@@ -34,18 +34,18 @@ disflg = $09 ; negative=no display
 varnum = 8
 
 ; *** pointers ***
-ptr = 61  ; utility pointer
-top = 63  ; top line of text window
-sob = 43  ; start of basic
-eob = 55  ; end of basic memory
-end = 45  ; end of text
-txt = 253 ; current text position
-scr = 251 ; current screen position
+ptr = $3d  ; utility pointer
+top = $3f  ; top line of text window
+sob = $2b  ; start of basic
+eob = $37  ; end of basic memory
+end = $2d  ; end of text
+txt = $fd  ; current text position
+scr = $fb  ; current screen position
 
 ; *** beginning of code ***
         .org $cb20
 
-        lda #128 ; keys repeat
+        lda #$80 ; all keys repeat
         sta rptkey
 
         lda #<crunchwdg ; wedge for basic
