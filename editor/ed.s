@@ -12,11 +12,9 @@ vic     = $d011
 bkg     = $d021
 bor     = $d020
 rptkey  = $28a
-icrunch = $304
 input   = $200
 
 ; *** rom routines ***
-crunchsrv = $a57c
 getin     = $ffe4
 print     = $ffd2
 ready     = $e37b
@@ -47,11 +45,6 @@ scr = $fb  ; current screen position
 
         lda #$80 ; all keys repeat
         sta rptkey
-
-        lda #<crunchwdg ; wedge for basic
-        sta icrunch
-        lda #>crunchwdg
-        sta icrunch+1
 
 ; entry for ed command from basic
 start:
@@ -714,18 +707,6 @@ f34:
         lda ptr
         pha
         rts
-
-; wedge for ed command in basic
-crunchwdg: ; wedge for ed command
-        lda input
-        cmp #'e'
-        bne f35
-        lda input+1
-        cmp #'d'
-        bne f35
-        jmp start ; call mr. ed
-f35:
-        jmp crunchsrv ; pass to basic
 
 ; command entries
 commands:
