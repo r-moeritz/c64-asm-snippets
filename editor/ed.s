@@ -619,7 +619,7 @@ initialize:
         clc
         adc #2
         bcc f30
-        inx
+        inx ; crossed page boundary, increment hi-byte
 f30:
         sta txt
         sta top

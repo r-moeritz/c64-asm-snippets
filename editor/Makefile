@@ -24,7 +24,7 @@ clean:
 	$(RM) $(OBJDIR) *.o
 
 # Rules
-$(PRG): $(BAS)
+$(PRG): $(SRC)
 	$(MKPRG)
 
 $(D64): $(PRG) 
