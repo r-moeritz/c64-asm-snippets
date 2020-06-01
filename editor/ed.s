@@ -1,4 +1,5 @@
 ; Mr. Ed by Chris Miller Jul, 1986
+; Modifications by Ralph Moeritz Jun, 2020
 
 ; *** constants ***
 columns   = 40          ; screen size
