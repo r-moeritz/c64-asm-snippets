@@ -1,4 +1,5 @@
 ; Mr. Ed by Chris Miller Jul, 1986
+; Modifications by Ralph Moeritz Jun, 2020
 
 ; *** constants ***
 columns   = 40          ; screen size
@@ -6,17 +7,17 @@ linesize  = 250         ; max allowed
 screenbeg = $428        ; top of text scr
 screenend = $7e8        ; end of text scr
 rows      = 24          ; screenend-screenbeg/columns
+bufferbeg = $4000       ; start of text buffer memory
+bufferend = $7fff       ; end of text buffer memory
 
 ; *** important memory ***
 vic     = $d011
 bkg     = $d021
 bor     = $d020
 rptkey  = $28a
-icrunch = $304
 input   = $200
 
 ; *** rom routines ***
-crunchsrv = $a57c
 getin     = $ffe4
 print     = $ffd2
 ready     = $e37b
@@ -36,8 +37,6 @@ varnum = 8
 ; *** pointers ***
 ptr = $3d  ; utility pointer
 top = $3f  ; top line of text window
-sob = $2b  ; start of basic
-eob = $37  ; end of basic memory
 end = $2d  ; end of text
 txt = $fd  ; current text position
 scr = $fb  ; current screen position
@@ -45,16 +44,10 @@ scr = $fb  ; current screen position
 ; *** beginning of code ***
         .org $cb20
 
+start:
         lda #$80 ; all keys repeat
         sta rptkey
 
-        lda #<crunchwdg ; wedge for basic
-        sta icrunch
-        lda #>crunchwdg
-        sta icrunch+1
-
-; entry for ed command from basic
-start:
         lda #9
         sta vic ; screen off
 
@@ -492,10 +485,10 @@ f23:
 
 pshend: ; bump end ptr up
         lda end+1
-        cmp eob+1
+        cmp #>bufferend
         bcc f24
         lda end
-        cmp eob
+        cmp #<bufferend
         bcs r5
 f24:
         inc end
@@ -621,12 +614,10 @@ f29:
         rts
 
 initialize:
-        lda sob
-        ldx sob+1
-        clc
-        adc #2
-        bcc f30
-        inx
+        lda #<bufferbeg
+        ldx #>bufferbeg
+        sta end
+        stx end+1
 f30:
         sta txt
         sta top
@@ -645,10 +636,10 @@ b18:
         inc ptr+1
 f31:
         ldx ptr+1
-        cpx eob+1
+        cpx #>bufferend
         bcc b18
         ldx ptr
-        cpx eob
+        cpx #<bufferend
         bcc b18
 initscr:
         lda #<screenbeg
@@ -679,11 +670,11 @@ f32:
         jsr cnvrtdec
         jsr message
         .asciiz " FREE:"
-        lda eob+1
+        lda #>bufferend
         sec
         sbc end+1
         tay
-        lda eob
+        lda #<bufferend
         sbc end
         tax
         tya
@@ -714,18 +705,6 @@ f34:
         lda ptr
         pha
         rts
-
-; wedge for ed command in basic
-crunchwdg: ; wedge for ed command
-        lda input
-        cmp #'e'
-        bne f35
-        lda input+1
-        cmp #'d'
-        bne f35
-        jmp start ; call mr. ed
-f35:
-        jmp crunchsrv ; pass to basic
 
 ; command entries
 commands:
