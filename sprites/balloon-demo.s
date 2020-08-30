@@ -20,7 +20,7 @@ init	lda #$04
 	lda #mib_mem_sp2/64	; store start addr. of ptr. 2
 	sta mib_pointer+2	; to spr. ptr. register
 	
-	ldx #$3e		; max. spr. value => 63
+	ldx #$3f		; max. spr. value => 63
 x0	lda spr0,x	; load spr. byte
 	sta mib_mem_sp2,x	; store to spr. mem.
 	dex
@@ -35,7 +35,7 @@ y0	inc mib_x2
 	inc mib_y2
 	
 	;; delay for spr. move
-	ldx #$05		; set prescaler outer loop
+	ldx #$09		; set prescaler outer loop
 y11	ldy #$ff		; set prescaler inner loop		
 y1	dey		
 	bne y1		
@@ -50,7 +50,7 @@ y1	dey
 	
 ;; balloon sprite			
 spr0	.byte 0,127,0,1,255,192,3,255,224,3,231,224
-	.byte 7,217,240,7,223,240,2,217,240,3,231,224
+	.byte 7,217,240,7,223,240,7,217,240,3,231,224
 	.byte 3,255,224,3,255,224,2,255,160,1,127,64
 	.byte 1,62,64,0,156,128,0,156,128,0,73,0,0,73,0,0
 	.byte 62,0,0,62,0,0,62,0,0,28,0
