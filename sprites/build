@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-tmpx balloon-demo.s && \
-mkd64 -o sprite-demos.d64 -m cbmdos -d 'SPRITE DEMOS' -m separators \
--f balloon-demo.prg -n BALLOON-DEMO -w
