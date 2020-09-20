@@ -10,9 +10,10 @@ RM := rm -rf
 MKDIR := mkdir -p
 MKD64 = mkd64 -o $(D64) -m cbmdos -d 'SPRITES' -m separators \
 -f $(PRG) -n BALLOON -w
+X64 := x64sc
 
 # Targets
-.PHONY: all clean
+.PHONY: all clean run
 
 all: $(D64)
 
@@ -23,6 +24,9 @@ $(OBJDIR):
 
 clean:
 	$(RM) $(OBJDIR)
+
+run: $(PRG)
+	$(X64) $(PRG)
 
 # Rules
 $(PRG): $(SRC)
