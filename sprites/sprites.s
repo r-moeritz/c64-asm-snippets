@@ -53,9 +53,12 @@ loadspr	lda spr0,x		; load spr. byte
 ;; quit if fire button pressed
 readjoy	jsr djrr
 	#jcc quit
-delay	ldx #$ff
-loop	dex
-	bne loop 
+delay	ldx #$04
+loop0	ldy #$ff
+loop1	dey
+	bne loop1
+	dex
+	bne loop0
 chkmov	lda #1
 	cmp dx
 	beq mvright
@@ -97,7 +100,7 @@ chkmaxy	lda spritey
 	bcc setspry			; < y upper-bound
 	jmp fixmaxy			; > y upper-bound
 chkminy lda spritey
-	cmp #min_spritey			; check y lower-bound		
+	cmp #min_spritey		; check y lower-bound
 	beq setspry			; = y lower-bound
 	bcs setspry			; > y lower-bound
 fixminy	lda #min_spritey
@@ -152,9 +155,11 @@ spr0	.byte 0,127,0,1,255,192,3,255,224,3,231,224
 	.byte 62,0,0,62,0,0,62,0,0,28,0
 
 ;; joystick x & y dir
+;; TODO move to zero-page
 dx	.byte 0	
 dy	.byte 0
 
 ;; sprite x & y positions
+;; TODO move to zero-page
 spritex	.word $0000
 spritey .byte $00
