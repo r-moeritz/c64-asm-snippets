@@ -1,4 +1,3 @@
-        *=$c000
 ;; memory locations
 vic     = $d000
 newvic  = $c100
@@ -15,6 +14,9 @@ irqend  = $ea81
 ;; values
 gray3   = 15
 green   =  5
+
+        *=$c000
+
 ;; disable all interrupts
         sei                     ; ignore all irqs
         lda #$7f
