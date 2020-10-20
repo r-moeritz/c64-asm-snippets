@@ -2,11 +2,19 @@
 
 .include "../macros.s"
 
-cinv = $0314
-sp2mem = $0340			; sp2 is in cassette buf.
+;--------------------------------------------------------
+; memory addresses
+;--------------------------------------------------------
 
-sp0ptr = $07f8			; ptr. to sprite 0
+;; joystick 2 coordinates
+joy2x = $009e
+joy2y = $009f
 
+cinv = $0314			; irq vector
+sp2mem = sp2data		; sprite 2 shape
+sp0ptr = $07f8			; pointer to sprite 0
+
+;; vic-ii memory
 vic = $d000
 sp2x = vic+$04
 sp2y = vic+$05
@@ -17,42 +25,43 @@ vicirq = vic+$19
 irqmsk = vic+$1a
 spena  = vic+$15
 
+;; i/o
 ciapra = $dc00
 ciaicr = $dc0d
 
+;; kernal routines
 clrscn = $e544
 sysirq = $ea31
 restore = $ea7e
 
-rasterln = 250			; line for raster irq
+;--------------------------------------------------------
+; constants
+;--------------------------------------------------------
+
+rasterln = $fa			; line for raster irq
 
 ;; sprite bounding box
-minspx = $0013			; 19
-minspy = $32			; 50
-maxspx = $0144			; 324
-maxspy = $e5			; 229
+minspx = $0013
+minspy = $32
+maxspx = $0144
+maxspy = $e5
 
+;--------------------------------------------------------
+; code start
+;--------------------------------------------------------
 
 *=$0800
 
-;; encode sys 2064 ($0810) line in basic prg space
+;; encode basic "sys 2064" ($810)
 .byte $00, $0c, $08, $0a, $00, $9e, $20, $32
 .byte $30, $36, $34, $00, $00, $00, $00, $00
 
 	;; enable sprite
 init	lda #%00000100
-	sta spena		; enable spr. 2
+	sta spena		; enable sprite 2
 	
-	lda #sp2mem/64		; store start addr. of ptr. 2
-	sta sp0ptr+2		; to spr. ptr. register
-
-	;; load sprite data	
-	ldx #$3f		; max. spr. value => 63
-loadspr	lda sp2data,x		; load spr. byte
-	sta sp2mem,x		; store to spr. mem.
-	dex
-	bne loadspr
-	dex
+	lda #sp2mem/64		; store address of sprite 2 shape
+	sta sp0ptr+2		; in sprite pointer register
 
 	;; set sprite position, clear screen	
 	lda #100
@@ -195,20 +204,14 @@ djr3	lsr
 	stx joy2x
 	sty joy2y
 	rts
+
+;; sprite 2 coordinates
+sp2posx	.word $0000
+sp2posy	.byte $00
 	
-;; balloon sprite			
-sp2data	.byte 0,127,0,1,255,192,3,255,224,3,231,224
+;; balloon sprite (address must be divisible by 64)
+sp2data .byte 0,127,0,1,255,192,3,255,224,3,231,224
 	.byte 7,217,240,7,223,240,7,217,240,3,231,224
 	.byte 3,255,224,3,255,224,2,255,160,1,127,64
 	.byte 1,62,64,0,156,128,0,156,128,0,73,0,0,73,0,0
 	.byte 62,0,0,62,0,0,62,0,0,28,0
-
-;; joystick 2 x & y dir
-;; TODO move to zero-page
-joy2x	.byte 0	
-joy2y	.byte 0
-
-;; sprite 2 x & y positions
-;; TODO move to zero-page
-sp2posx	.word $0000
-sp2posy	.byte $00
