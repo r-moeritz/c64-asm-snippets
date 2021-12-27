@@ -17,7 +17,7 @@
             .const newvalue = iirq2+4
             .const oldvalue = iirq2+5
 
-            *=$c100
+            *= $c100
 
 install:        lda iirq+1
                 cmp #>mirq
