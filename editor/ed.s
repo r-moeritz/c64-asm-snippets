@@ -1,6 +1,8 @@
             // Mr. Ed by Chris Miller Jul, 1986
             // Modifications by Ralph Moeritz Jun, 2020
 
+            .encoding "petscii_mixed"
+
             // *** constants ***
             .const columns = 40         // screen size
 	        .const linesize = 250       // max allowed
@@ -652,7 +654,8 @@ initscr:
 statusline:
 	            jsr message
 	            .byte 19                // (home)
-                .byte $c3,$cf,$cc,$d5,$cd,$ce,$3a,0 // "COLUMN:0"
+                .text "COLUMN:"
+                .byte 0
 	            lda shift
 	            sec
 	            adc col
@@ -660,7 +663,8 @@ statusline:
 	            tya                     // =0
 	            jsr cnvrtdec
 	            jsr message
-                .byte $20,$cc,$c9,$ce,$c5,$3a,0 // " LINE:0"
+                .text " LINE:"
+                .byte 0
 	            ldy line+1
 	            ldx line
 	            inx
@@ -670,7 +674,8 @@ f32:
 	            tya
 	            jsr cnvrtdec
 	            jsr message
-                .byte $20,$c6,$d2,$c5,$c5,$3a,0 // " FREE:0"
+                .text " FREE:"
+                .byte 0
 	            lda #>bufferend
 	            sec
 	            sbc end+1
