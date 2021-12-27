@@ -2,3 +2,7 @@ build/
 *.o
 *.prg
 *.d64
+*.dbg
+*.bin
+*.vs
+*.sym
