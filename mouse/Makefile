@@ -10,7 +10,7 @@ D64 := $(OBJDIR)/1351-mouse-demo.d64
 
 # Commands
 MKPRG = petcat -w2 -o $@ -- $<
-MKBIN = tmpx -o $@ $<
+MKBIN = java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler -odir $(OBJDIR) -o $@ $<
 RM := rm -rf
 CP = cp $< $@
 MKDIR := mkdir -p
