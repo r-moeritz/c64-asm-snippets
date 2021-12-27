@@ -5,7 +5,7 @@ PRG := $(OBJDIR)/sprites.prg
 D64 := $(OBJDIR)/sprites.d64
 
 # Commands
-MKPRG = tmpx -o $(PRG) -i $(SRC)
+MKPRG = java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler -odir $(OBJDIR) $(SRC)
 RM := rm -rf
 MKDIR := mkdir -p
 MKD64 = mkd64 -o $(D64) -m cbmdos -d 'SPRITES' -m separators \

@@ -1,70 +1,70 @@
-; useful general-purpose and 16-bit macros
+            // useful general-purpose and 16-bit macros
 
-;; 2-byte increment
-;; \1	memory location (lo-byte) to increment
-dbinc	.macro
-	lda \1
-	clc
-	adc #1
-	sta \1
-	lda #0
-	adc \1+1
-	sta \1+1
-	.endm
+            // 2-byte increment
+            // lo: memory location (low-byte) to increment
+            .macro dbinc(lo) {
+                lda lo
+	            clc
+	            adc #1
+	            sta lo
+	            lda #0
+	            adc lo+1
+	            sta lo+1
+            }
 
-;; 2-byte decrement
-;; \1	memory location (lo-byte) to decrement
-dbdec	.macro
-	lda \1
-	sec
-	sbc #1
-	sta \1
-	lda \1+1
-	sbc #0
-	sta \1+1
-	.endm
+            // 2-byte decrement
+            // lo: memory location (low-byte) to decrement
+            .macro dbdec(lo) {
+	            lda lo
+	            sec
+	            sbc #1
+	            sta lo
+	            lda lo+1
+	            sbc #0
+	            sta lo+1
+            }
 
-;; 2-byte cmp a memory location with a 16-bit number (same semantics as regular cmp ins.)
-;; \1	first memory location (lo-byte) to compare (equiv. to a)	
-;; \2	16-bit number
-dbcmpi	.macro
-	lda \1+1
-	cmp #>\2
-	bcc done
-	bne done
-	lda \1
-	cmp #<\2
-done	nop
-	.endm
+            // 2-byte cmp a memory location with a 16-bit number (same semantics as regular cmp ins.)
+            // lo: first memory location (low-byte) to compare (equiv. to a)
+            // wrd: 16-bit number
+            .macro dbcmpi(lo,wrd) {
+                lda lo+1
+	            cmp #>wrd
+	            bcc done
+	            bne done
+	            lda lo
+	            cmp #<wrd
+done:
+            }
 
-;; jmp to address if c=0
-;; \1	address to jmp to if c=0
-jcc	.macro
-	bcs done
-	jmp \1
-done	nop
-	.endm
+            // jmp to address if c=0
+            // adr: address to jmp to if c=0
+            .pseudocommand jcc adr {
+	            bcs done
+	            jmp adr
+done:
+            }
 
-;; jmp to address if c=1
-;; \1	address to jmp to if c=1
-jcs	.macro
-	bcc done
-	jmp \1
-done	nop
-	.endm
+            // jmp to address if c=1
+            // adr:	address to jmp to if c=1
+            .pseudocommand jcs adr {
+                bcc done
+	            jmp adr
+done:
+            }
 
-;; jmp to address if z=1
-;; \1	address to jmp to if z=1
-jeq	.macro
-	bne done
-	jmp \1
-done	nop
-	.endm
+            // jmp to address if z=1
+            // adr:	address to jmp to if z=1
+            .pseudocommand jeq adr {
+                bne done
+	            jmp adr
+done:
+            }
 
-;; jmp to address if z=0
-;; \1	address to jmp to if z=0
-jne	.macro
-	beq done
-	jmp \1
-done	nop
-	.endm
+            // jmp to address if z=0
+            // adr:	address to jmp to if z=0
+            .pseudocommand jne adr {
+                beq done
+	            jmp adr
+done:
+            }
