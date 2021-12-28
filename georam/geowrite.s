@@ -1,10 +1,9 @@
                 // Kopieren des Bereichs $400-$7e7 in GeoRAM $0000-$0400 (1 Kb)
 
+#import "georam.inc"
+
                 *= $1024
 
-                .const geobuf = $de00
-                .const geobuf_sect = $dffe
-                .const block = $dfff
                 .const membuf = $400    // - $07e7
 
                 lda #$00                // Register auf Block $00 und $0000

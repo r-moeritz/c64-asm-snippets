@@ -1,10 +1,9 @@
                 // Kopieren des Bereichs $0000-$0400 in den Rechner-Speicher $400-$7e7 (1 Kb)
 
+#import "georam.inc"
+
                 *= $1000
 
-                .const geobuf = $de00
-                .const geobuf_sect = $dffe
-                .const block = $dfff
                 .const membuf = $400    // - $7e7
 
                 lda #$00                // Register auf Block $00 und $0000
