@@ -20,9 +20,9 @@ loop:           lda args,x
                 bpl loop
                 rts
 
-args:           .byte 0
-                .word baseadr
-                .word 0
-                .byte 0
-                .word xferlen
-                .byte 0,0
+args:           .byte 0                 // command
+                .word baseadr           // C64 base address
+                .word 0                 // REU base address
+                .byte 0                 // REU bank
+                .word xferlen           // transfer length
+                .byte 0,0               // IRQ mask & address control

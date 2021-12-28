@@ -9,7 +9,7 @@
 //
 // Uses a "new" more optimal sortmethod that doesn't take as much time
 // as bubblesort. This method is based on the idea of an orderlist that
-// is not recreated from scratch each frame// but instead modified every
+// is not recreated from scratch each frame, but instead modified every
 // frame to create correct top-bottom order of sprites.
 //
 // Why sorted top-bottom order of sprites is necessary for multiplexing:
@@ -27,32 +27,30 @@
 //
 // This source code is in Kick Assembler format.
 
-            *= $0fc0
+                *= $0fc0
 
                 .fill 64,$ff            // Our sprite. Really complex design :-)
 
-                *= $1000
+                .const IRQ1LINE        = $fc // This is the place on screen where the sorting
+                                             // IRQ happens
+                .const IRQ2LINE        = $2a // This is where sprite displaying begins...
 
-            .const IRQ1LINE        = $fc // This is the place on screen where the sorting
-                                         // IRQ happens
-            .const IRQ2LINE        = $2a // This is where sprite displaying begins...
+                .const MAXSPR          = 32 // Maximum number of sprites
 
-            .const MAXSPR          = 32  // Maximum number of sprites
+                .const numsprites      = $02 // Number of sprites that the main program wants
+                                             // to pass to the sprite sorter
+                .const sprupdateflag   = $03 // Main program must write a nonzero value here
+                                             // when it wants new sprites to be displayed
+                .const sortedsprites   = $04 // Number of sorted sprites for the raster
+                                             // interrupt
+                .const tempvariable    = $05 // Just a temp variable used by the raster
+                                             // interrupt
+                .const sprirqcounter   = $06 // Sprite counter used by the interrupt
 
-            .const numsprites      = $02 // Number of sprites that the main program wants
-                                         // to pass to the sprite sorter
-            .const sprupdateflag   = $03 // Main program must write a nonzero value here
-                                         // when it wants new sprites to be displayed
-            .const sortedsprites   = $04 // Number of sorted sprites for the raster
-                                         // interrupt
-            .const tempvariable    = $05 //Just a temp variable used by the raster
-                                         // interrupt
-            .const sprirqcounter   = $06 // Sprite counter used by the interrupt
+                .const sortorder       = $10 // Order-table for sorting. Needs as many bytes
+                .const sortorderlast   = $2f // as there are sprites.
 
-            .const sortorder       = $10 // Order-table for sorting. Needs as many bytes
-            .const sortorderlast   = $2f // as there are sprites.
-
-                //Main program
+                // Main program
 
 start:          jsr initsprites         // Init the multiplexing-system
                 jsr initraster
