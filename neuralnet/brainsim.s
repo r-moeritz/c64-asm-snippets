@@ -50,16 +50,27 @@
                 }
             }
 
-                *= $c000
+            .macro print_char_i(chr) {
+                lda #chr
+                jsr chrout
+            }
+
+            .macro print_char(adr) {
+                lda adr
+                jsr chrout
+            }
+
+                *= $0801
+
+                BasicUpstart2(init)
 
                 // Screen configuration
-                lda #13                 // Set
+init:           lda #13                 // Set
                 ldx #6                  // border
                 sta $d020               // and
                 stx $d021               // background
 
-                lda #$93                // Clear
-                jsr chrout               // screen
+                print_char_i($93)       // Clear screen
 
                 jsr print_prompt
 
@@ -69,7 +80,7 @@
                 jsr update_f2_on_screen
                 jsr update_f1_on_screen
 
-                position_to_status_area()
+read_input:     position_to_status_area()
 
                 jsr print_ready
                 jsr read_char
@@ -77,14 +88,56 @@
                 position_to_status_area()
                 print_spaces(10)
 
+                .var k=a
+                lda a
+                cmp #$85                // Check if
+                bcc not_fkey            // F-key was
+                cmp #$8d                // pressed
+                bcs not_fkey            // and
+                jsr dispatch_fkey       // dispatch
+
                 rts
+
+not_fkey:       cmp #$30
+                bcc not_digit
+                cmp #$3a
+                bcs not_digit
+                .eval k += 64
+                jmp echo_char
+
+not_digit:      cmp #$41
+                jcc read_input
+                cmp #$5b
+                jcs read_input
+
+echo_char:      position_to_status_area()
+                jsr print_fetch
+                print_char(a)
+
+                rts
+
+dispatch_fkey: {
+                // TODO
+               rts
+}
 
 read_char: {
 loop:           jsr getin
                 beq loop
-                sta k
+                sta a
 
                 rts
+}
+
+print_fetch: {
+                ldx #0
+getchr:         lda fetch,x
+                beq done
+                jsr chrout
+                inx
+                jmp getchr
+
+done:           rts
 }
 
 print_ready: {
@@ -149,9 +202,8 @@ putchr:                 sta v+8-j
                 rts
 }
 
-
             // Variable declarations
-k:              .byte 0
+a:              .byte 0
 f1:             .fill 42, 0
 f2:             .fill 42, 0
 m:              .fill 42*42, 0
@@ -168,4 +220,6 @@ prompt:         .text @"    neuron network associative memory\n\n"
                 .text @"a-z, 0-9: load pattern\n"
                 .byte 0
 ready:          .text " ready    "
+                .byte 0
+fetch:          .text "fetch "
                 .byte 0
