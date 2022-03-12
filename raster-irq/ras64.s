@@ -29,7 +29,8 @@
                 lda vicirq              // disable last vic irq
                 lda cia1icr             // disable last cia1 irq
                 lda cia2icr             // disable last cia2 irq
-                                        // make 2 copies of vic registers $d000-$d02e at $c100 and $c12f
+
+                // make 2 copies of vic registers $d000-$d02e at $c100 and $c12f
                 ldy #$2e
 loop:           lda vic,y
                 sta newvic,y
