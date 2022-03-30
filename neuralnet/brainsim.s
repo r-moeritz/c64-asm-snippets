@@ -2,8 +2,12 @@
 
             .encoding "petscii_mixed"
 
+            // kernal routines
             .const getin = $ffe4
             .const chrout = $ffd2
+
+            // zp
+            .const ptr = $fa
 
             .macro draw_border(r1, c1) {
                 .var v
@@ -60,6 +64,18 @@
                 jsr chrout
             }
 
+            .macro print_str(str) {
+                lda #<str
+                ldx #>str
+                sta ptr
+                stx ptr+1
+                jsr print_ptr
+            }
+
+            .macro clear_screen() {
+                print_char_i($93)
+            }
+
                 *= $0801
 
                 BasicUpstart2(init)
@@ -70,9 +86,9 @@ init:           lda #13                 // Set
                 sta $d020               // and
                 stx $d021               // background
 
-                print_char_i($93)       // Clear screen
+                clear_screen()
 
-                jsr print_prompt
+                print_str(prompt)
 
                 draw_border(4, 5)
                 draw_border(4, 25)
@@ -82,7 +98,7 @@ init:           lda #13                 // Set
 
 read_input:     position_to_status_area()
 
-                jsr print_ready
+                print_str(ready)
                 jsr read_char
 
                 position_to_status_area()
@@ -111,14 +127,21 @@ not_digit:      cmp #$41
                 jcs read_input
 
 echo_char:      position_to_status_area()
-                jsr print_fetch
+                print_str(fetch)
                 print_char(a)
 
                 rts
 
 dispatch_fkey: {
+                sec
+                sbc #132
+
+                cmp #1
+                jeq train_on_pattern_in_f1
+
                 // TODO
-               rts
+
+                rts
 }
 
 read_char: {
@@ -129,39 +152,17 @@ loop:           jsr getin
                 rts
 }
 
-print_fetch: {
-                ldx #0
-getchr:         lda fetch,x
+print_ptr: {
+                ldy #0
+getchr:         lda (ptr),y
                 beq done
                 jsr chrout
-                inx
+                iny
                 jmp getchr
 
 done:           rts
 }
 
-print_ready: {
-                ldx #0
-getchr:         lda ready,x
-                beq done
-                jsr chrout
-                inx
-                jmp getchr
-
-done:           rts
-}
-
-print_prompt: {
-                ldx #0
-getchr:         lda prompt,x
-                beq done
-                jsr chrout
-                inx
-                jmp getchr
-
-done:           rts
-}
-            
 update_f2_on_screen: {
                 ldx #0
 
@@ -202,6 +203,14 @@ putchr:                 sta v+8-j
                 rts
 }
 
+train_on_pattern_in_f1: {
+                position_to_status_area()
+
+                print_str(training)
+
+                // TODO
+}
+
             // Variable declarations
 a:              .byte 0
 f1:             .fill 42, 0
@@ -222,4 +231,6 @@ prompt:         .text @"    neuron network associative memory\n\n"
 ready:          .text " ready    "
                 .byte 0
 fetch:          .text "fetch "
+                .byte 0
+training:       .text "training"
                 .byte 0
