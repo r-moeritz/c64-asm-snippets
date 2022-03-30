@@ -36,16 +36,6 @@
                 }
             }
 
-            .macro position_to_status_area() {
-                lda #$13
-                jsr chrout
-
-                lda #$11
-                .for (var i=0; i<21; i++) {
-                    jsr chrout
-                }
-            }
-
             .macro print_spaces(n) {
                 lda #' '
 
@@ -96,12 +86,12 @@ init:           lda #13                 // Set
                 jsr update_f2_on_screen
                 jsr update_f1_on_screen
 
-read_input:     position_to_status_area()
+read_input:     jsr position_to_status_area
 
                 print_str(ready)
                 jsr read_char
 
-                position_to_status_area()
+                jsr position_to_status_area
                 print_spaces(10)
 
                 .var k=a
@@ -126,7 +116,7 @@ not_digit:      cmp #$41
                 cmp #$5b
                 jcs read_input
 
-echo_char:      position_to_status_area()
+echo_char:      jsr position_to_status_area
                 print_str(fetch)
                 print_char(a)
 
@@ -204,11 +194,23 @@ putchr:                 sta v+8-j
 }
 
 train_on_pattern_in_f1: {
-                position_to_status_area()
+                jsr position_to_status_area
 
                 print_str(training)
 
                 // TODO
+}
+
+position_to_status_area: {
+                lda #$13
+                jsr chrout
+
+                lda #$11
+                ldx #21
+prtchr:         jsr chrout
+                dex
+                bne prtchr
+                rts
 }
 
             // Variable declarations
