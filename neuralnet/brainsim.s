@@ -9,6 +9,7 @@
             // zp
             .const ptr = $fb
             .const n = $fd
+            .const p = $fe
 
             .macro print_spaces(count) {
                 lda #count
@@ -64,6 +65,14 @@
 
             .macro clear_screen() {
                 print_char_i($93)
+            }
+
+            .macro multiply(num1, num2) {
+                lda #num1
+                ldx #num2
+                sta n
+                stx p
+                jsr _multiply
             }
 
                 *= $0801
@@ -140,6 +149,7 @@ loop:           jsr getin
                 rts
 }
 
+            // print str pointed to by ptr
 _print_str: {
                 ldy #0
 getchr:         lda (ptr),y
@@ -211,6 +221,7 @@ prtchr:         jsr chrout
                 rts
 }
 
+            // print n spaces
 _print_spaces: {
                 lda #' '
                 ldx n
@@ -219,6 +230,21 @@ loop:           beq done
                 dex
                 jmp loop
 done:           rts
+}
+
+            // multiply n by p. result in [ptr, ptr+1] (lo, hi)
+_multiply: {
+                lda #0                  // Initialize RESULT to 0
+                ldx #8                  // There are 8 bits in p
+l1:             lsr p                   // Get low bit of p
+                bcc l2                  // 0 or 1?
+                clc                     // If 1, add n
+                adc n
+l2:             ror                     // "Stairstep" shift (catching carry from add)
+                ror ptr
+                dex
+                bne l1
+                sta ptr+1
 }
 
             // Variable declarations
