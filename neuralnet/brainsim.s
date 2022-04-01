@@ -7,41 +7,13 @@
             .const chrout = $ffd2
 
             // zp
-            .const ptr = $fa
+            .const ptr = $fb
+            .const n = $fd
 
-            .macro draw_border(r1, c1) {
-                .var v
-                .var vv
-                .for (var i=0; i<2; i++) {
-                    .eval v = $0400+$28*(r1+i*8)+c1
-                    .eval vv = $70-3*i
-                    lda #vv
-                    sta v
-
-                    .for (var j=1; j<9; j++) {
-                        lda #$43
-                        sta v+j
-                    }
-
-                    .eval vv = $6e+$f*i
-                    lda #vv
-                    sta v+9
-                }
-
-                .for (var i=1; i<8; i++) {
-                    .eval v = $0400+$28*(r1+i)+c1
-                    lda #$5d
-                    sta v
-                    sta v+9
-                }
-            }
-
-            .macro print_spaces(n) {
-                lda #' '
-
-                .for (var i=0; i<n; i++) {
-                    jsr chrout
-                }
+            .macro print_spaces(count) {
+                lda #count
+                sta n
+                jsr _print_spaces
             }
 
             .macro print_char_i(chr) {
@@ -59,7 +31,35 @@
                 ldx #>str
                 sta ptr
                 stx ptr+1
-                jsr print_ptr
+                jsr _print_str
+            }
+
+            .macro draw_border(row, col) {
+                .var adr
+                .var val
+
+                .for (var i=0; i<2; i++) {
+                    .eval adr = $0400+$28*(row+i*8)+col
+                    .eval val = $70-3*i
+                    lda #val
+                    sta adr
+
+                    .for (var j=1; j<9; j++) {
+                        lda #$43
+                        sta adr+j
+                    }
+
+                    .eval val = $6e+$f*i
+                    lda #val
+                    sta adr+9
+                }
+
+                .for (var i=1; i<8; i++) {
+                    .eval adr = $0400+$28*(row+i)+col
+                    lda #$5d
+                    sta adr
+                    sta adr+9
+                }
             }
 
             .macro clear_screen() {
@@ -94,7 +94,6 @@ read_input:     jsr position_to_status_area
                 jsr position_to_status_area
                 print_spaces(10)
 
-                .var k=a
                 lda a
                 cmp #$85                // Check if
                 bcc not_fkey            // F-key was
@@ -108,7 +107,6 @@ not_fkey:       cmp #$30
                 bcc not_digit
                 cmp #$3a
                 bcs not_digit
-                .eval k += 64
                 jmp echo_char
 
 not_digit:      cmp #$41
@@ -142,7 +140,7 @@ loop:           jsr getin
                 rts
 }
 
-print_ptr: {
+_print_str: {
                 ldy #0
 getchr:         lda (ptr),y
                 beq done
@@ -211,6 +209,16 @@ prtchr:         jsr chrout
                 dex
                 bne prtchr
                 rts
+}
+
+_print_spaces: {
+                lda #' '
+                ldx n
+loop:           beq done
+                jsr chrout
+                dex
+                jmp loop
+done:           rts
 }
 
             // Variable declarations
