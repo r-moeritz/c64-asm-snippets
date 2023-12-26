@@ -1,5 +1,5 @@
-// Mr. Ed by Chris Miller Jul, 1986
-// Modifications by Ralph Moeritz Jun, 2020
+	// Mr. Ed by Chris Miller Jul, 1986
+	// Modifications by Ralph Moeritz Jun, 2020
 
 	.encoding "petscii_mixed"
 
@@ -77,7 +77,7 @@ b1:
 	jsr initialize
 	jsr window
 
-// main key scan loop
+	// main key scan loop
 getkey:				// always return here
 	lda #>getkey
 	pha
@@ -93,7 +93,7 @@ b2:
 
 	jsr reverse		// y=0
 
-// check command keys
+	// check command keys
 b3:
 	cmp commands,y
 	beq foundkey		// also sets carry
@@ -111,7 +111,7 @@ foundkey:			// jump to routine
 	pha
 	rts
 
-// put character in text buffer
+	// put character in text buffer
 put:
 	tax			// save key
 	cmp #13
@@ -147,7 +147,7 @@ f3:
 	jsr cnvscr
 	sta (scr),y
 
-// cursor right routine
+	// cursor right routine
 right:				// cursor right routine
 	jsr findeoln
 	tya
@@ -171,7 +171,7 @@ f5:
 r1:
 	rts
 
-// cursor left routine
+	// cursor left routine
 b4:
 	dec shift		// scroll left
 	jmp window
@@ -194,13 +194,13 @@ f6:
 r2:
 	rts
 
-// carriage return handling routine
+	// carriage return handling routine
 cret:				// handle carriage return
 	jsr findeoln
 	txa			// x=13
 	sta (txt),y
 
-// cursor down routine
+	// cursor down routine
 down:
 	jsr findeoln
 	tay
@@ -229,7 +229,7 @@ f9:
 	sta scr
 	rts
 
-// cursor up routine
+	// cursor up routine
 up:
 	lda line		// check position
 	ora line+1		// check position
@@ -279,7 +279,7 @@ f14:
 r3:
 	rts
 
-// move window up
+	// move window up
 topup:				// move text window up line
 	ldy #$ff
 	dec top+1
@@ -300,7 +300,7 @@ f15:
 	sta top
 	jmp window
 
-// move window down
+	// move window down
 topdown:			// move window down line
 	ldy #$ff
 b7:
@@ -311,7 +311,7 @@ b7:
 	bne b7
 	beq newtop
 
-// initialize for start of new line
+	// initialize for start of new line
 unshift:
 	lda scr
 	sec
@@ -333,7 +333,7 @@ f17:
 	sta col
 	sta shift
 
-// move text to screen window
+	// move text to screen window
 window:
 	bit disflg		// is display on
 	bmi r4			// no
@@ -356,7 +356,7 @@ window:
 	sta txt+1
 	jsr initscr
 
-// process next line of text
+	// process next line of text
 newline:
 	ldy #$ff
 b8:
@@ -431,7 +431,7 @@ dectxt:				// back up text ptr
 f20:
 	rts
 
-// convert ascii to screen code
+	// convert ascii to screen code
 cnvscr:
 	eor #128
 	bpl f21
@@ -586,7 +586,7 @@ b15:
 	bne b15
 	beq setwindow
 
-// scroll sideways to end of line
+	// scroll sideways to end of line
 pageright:
 	ror disflg		// no display
 	ldx #columns-1
@@ -598,7 +598,7 @@ setwindow:
 	lsr disflg
 	jmp window		// display
 
-// set y=distance to text eol
+	// set y=distance to text eol
 findeoln:
 	ldy #$ff
 b17:
@@ -690,7 +690,7 @@ f32:
 	.byte 0
 	rts
 
-// print in source messages
+	// print in source messages
 message:
 	ldy #0
 	pla
@@ -713,7 +713,7 @@ f34:
 	pha
 	rts
 
-// command entries
+	// command entries
 commands:
 	.byte 148
 	.word insrtspc-1	// inst
