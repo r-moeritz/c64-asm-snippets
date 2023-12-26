@@ -10,3 +10,5 @@ This repository contains various C64 assembly program snippets
 | sprite-multi/ | Sprite multiplexer by Lasse Oorni                      |
 | georam        | Sample programs for the GeoRAM from Berkeley Softworks |
 | fileio        | File I/O sample routines                               |
+| kbd           | Keyboard scan routine                                  |
+
