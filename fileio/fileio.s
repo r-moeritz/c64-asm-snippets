@@ -103,6 +103,7 @@ closfl:
 	// filename.
 fnamsz: {
 	ldx #0
+	ldy #0
 loop:	
 	lda (fnmptr),y
 	beq done
