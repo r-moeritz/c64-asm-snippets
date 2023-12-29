@@ -6,7 +6,7 @@ D64 := $(OBJDIR)/ed.d64
 ASM := java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler
 
 # Commands
-MKPRG = $(ASM) -odir $(OBJDIR) $(SRC)
+MKPRG = $(ASM) -odir $(OBJDIR) -bytedump $(SRC)
 RM := rm -rf
 MKDIR := mkdir -p
 MKD64 = c1541 -format ed,ed d64 $@ $(foreach p,$(PRG),-write $(p) $(subst .prg,,$(subst build/,,$(p))))

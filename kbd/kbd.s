@@ -37,21 +37,21 @@
     ~~~~~
       Example Code:
 
-            jsr Keyboard
-            bcs NoValidInput
-                stx TempX
-                sty TempY
-                cmp #$ff
-                beq NoNewAphanumericKey
-                    // Check A for Alphanumeric keys
-                    sta $0400
-            NoNewAphanumericKey:
-            // Check X & Y for Non-Alphanumeric Keys
-            ldx TempX
-            ldy TempY
-            stx $0401
-            sty $0402
-       NoValidInput:  // This may be substituted for an errorhandler if needed.
+        	jsr Keyboard
+        	bcs NoValidInput
+        	stx TempX
+        	sty TempY
+        	cmp #$ff
+        	beq NoNewAphanumericKey
+		// Check A for Alphanumeric keys
+        	sta $0400	
+	NoNewAphanumericKey:
+		// Check X & Y for Non-Alphanumeric Keys
+        	ldx TempX
+        	ldy TempY
+        	stx $0401
+		sty $0402
+	NoValidInput:  // This may be substituted for an errorhandler if needed.
 
 
     Returned

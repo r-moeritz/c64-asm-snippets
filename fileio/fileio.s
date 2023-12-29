@@ -13,7 +13,7 @@
 	.const bufptr = $fb	// pointer to text buffer
 	.const fnmptr = $fd	// pointer to zero-terminated filename
 
-	*= $c000
+	*= $c000 "File I/O Routines"
 
 	// open a seq or prg file and read all data into a buffer.
 	// enter with fnmptr pointing at zero-terminated filename and
