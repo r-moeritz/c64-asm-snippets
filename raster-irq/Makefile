@@ -8,7 +8,7 @@ D64 := $(OBJDIR)/ras64-demo.d64
 
 # Commands
 MKPRG = petcat -w2 -o $@ -- $<
-MKBIN = java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler -odir $(OBJDIR) -o $@ $<
+MKBIN = java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler -odir $(OBJDIR) -o -bytedump $@ $<
 RM := rm -rf
 CP = cp $< $@
 MKDIR := mkdir -p

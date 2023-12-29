@@ -5,11 +5,10 @@ PRG := $(OBJDIR)/sprites.prg
 D64 := $(OBJDIR)/sprites.d64
 
 # Commands
-MKPRG = java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler -odir $(OBJDIR) $(SRC)
+MKPRG = java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler -odir $(OBJDIR) -bytedump $(SRC)
 RM := rm -rf
 MKDIR := mkdir -p
-MKD64 = mkd64 -o $(D64) -m cbmdos -d 'SPRITES' -m separators \
--f $(PRG) -n BALLOON -w
+MKD64 = c1541 -format routines,routines d64 $@ $(foreach p,$(PRG),-write $(p) $(subst .prg,,$(subst build/,,$(p))))
 X64 := x64sc
 
 # Targets

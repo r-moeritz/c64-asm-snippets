@@ -11,7 +11,7 @@ MKBIN = $(ASM) -odir $(OBJDIR) -o $(BIN) $(SRC)
 MKPRG = pucrunch -x4096 -m6 $(BIN) $(PRG)
 RM := rm -rf
 MKDIR := mkdir -p
-MKD64 = c1541 -format multi,multi d64 $@ $(foreach p,$(PRG),-write $(p) $(subst .prg,,$(subst build/,,$(p))))
+MKD64 = c1541 -format multi,mu d64 $@ $(foreach p,$(PRG),-write $(p) $(subst .prg,,$(subst build/,,$(p))))
 
 # Targets
 .PHONY: all clean

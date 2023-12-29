@@ -5,7 +5,7 @@ PRG := $(SRC:%.s=$(OBJDIR)/%.prg)
 D64 := $(OBJDIR)/georam.d64
 
 # Commands
-MKPRG = java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler -odir $(OBJDIR)
+MKPRG = java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler -odir $(OBJDIR) -bytedump
 RM := rm -rf
 MKDIR := mkdir -p
 MKD64 := c1541 -format georam,gr d64
