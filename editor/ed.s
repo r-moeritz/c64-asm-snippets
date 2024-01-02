@@ -45,6 +45,7 @@
           ; *** beginning of code ***
           *= $c000
 
+          ; program entry
 start     lda #$80            ; all keys repeat
           sta rptkey
 
@@ -66,7 +67,8 @@ start     lda #$80            ; all keys repeat
           lda #27             ; screen on
           sta vic
 
-topoftext lda #0
+topoftext .block
+          lda #0
           ldx #varnum - 1     ; init vars
 
 b1        sta vars,x
@@ -75,9 +77,11 @@ b1        sta vars,x
 
           jsr initialize
           jsr window
+          .bend
 
           ; main key scan loop
-getkey    lda #>getkey        ; always return here
+getkey    .block
+          lda #>getkey        ; always return here
           pha
           lda #<getkey-1
           pha
@@ -98,15 +102,17 @@ b3        cmp commands,y
           cpy #commandnum
           bcc b3
           bcs put             ; a typing key
-
+          
 foundkey  lda commands+2,y    ; jump to routine
           pha
           lda commands+1,y
           pha
           rts
+          .bend
 
           ; put character in text buffer
-put       tax                 ; save key
+put       .block
+          tax                 ; save key
           cmp #13
           beq f1
 
@@ -116,13 +122,13 @@ put       tax                 ; save key
           bne f1
           lda col
           cmp #columns-1
-          beq r1
-
+          beq right.r1
+          
 f1        jsr testpos         ; are we at end?
           bcc f2
 
           jsr pshend          ; make room if can
-          bcs r1              ; out of memory
+          bcs right.r1        ; out of memory
 
 f2        cpx #13
           beq cret
@@ -137,9 +143,11 @@ f3        txa
           sta (txt),y
           jsr cnvscr
           sta (scr),y
+          .bend
 
           ; cursor right routine
-right     jsr findeoln
+right     .block
+          jsr findeoln
           tya
           beq r1              ; already at end
           inc txt
@@ -159,12 +167,11 @@ f5        inc col
           inc scr+1
           
 r1        rts
+          .bend
 
           ; cursor left routine
-b4        dec shift           ; scroll left
-          jmp window
-
-left      lda col
+left      .block
+          lda col
           ora shift           ; check position
           beq r2              ; cant go left
           jsr dectxt
@@ -180,15 +187,20 @@ left      lda col
 f6        sta scr
 r2        rts
 
+b4        dec shift           ; scroll left
+          jmp window
+          .bend
+          
           ; carriage return handling routine
 cret      jsr findeoln        ; handle carriage return
           txa                 ; x=13
           sta (txt),y
 
           ; cursor down routine
-down      jsr findeoln
+down      .block
+          jsr findeoln
           tay
-          beq r2              ; already at bottom
+          beq left.r2         ; already at bottom
           jsr unshift         ; all the way left
           jsr findeoln
           jsr addy
@@ -201,17 +213,21 @@ f7        lda row
           bne f8
           jmp topdown         ; scroll down
 f8        inc row
+          .bend
 
-addrow    lda scr
+addrow    .block
+          lda scr
           clc
           adc #columns
           bcc f9
           inc scr+1
 f9        sta scr
           rts
+          .bend
 
           ; cursor up routine
-up        lda line            ; check position
+up        .block
+          lda line            ; check position
           ora line+1          ; check position
           beq r3              ; at top already
           dec line
@@ -251,35 +267,43 @@ f13       lda row             ; top of screen check
           dec scr+1
 f14       sta scr
 r3        rts
+          .bend
 
           ; move window up
-topup     ldy #$ff            ; move text window up line
+topup     .block
+          ldy #$ff            ; move text window up line
           dec top+1
 b6        dey
           lda (top),y
           beq newtop
           cmp #13
           bne b6
+          .bend
 
-newtop    sec                 ; add y to top pointer
+newtop    .block
+          sec                 ; add y to top pointer
           tya
           adc top
           bcc f15
           inc top+1
 f15       sta top
           jmp window
+          .bend
 
           ; move window down
-topdown   ldy #$ff
+topdown   .block
+          ldy #$ff
 b7        iny
           lda (top),y
           beq newtop
           cmp #13
           bne b7
           beq newtop
+          .bend
 
           ; initialize for start of new line
-unshift   lda scr
+unshift   .block
+          lda scr
           sec
           sbc col
           bcs f16
@@ -294,10 +318,11 @@ f17       sta txt
           lda #0
           sta col
           sta shift
+          .bend
 
           ; move text to screen window
 window    bit disflg          ; is display on
-          bmi r4              ; no
+          bmi newline.r4      ; no
 
           lda #rows           ; screenend-screenbeg/columns
           sta cnt
@@ -318,7 +343,8 @@ window    bit disflg          ; is display on
           jsr initscr
 
           ; process next line of text
-newline   ldy #$ff
+newline   .block
+          ldy #$ff
 b8        jsr testeoln
           beq lineblank
           cpy shift           ; handle right scroll
@@ -361,30 +387,37 @@ b10       sta (scr),y
           cpy #columns
           bcc b10
           bcs addscr          ; start next line
+          .bend
 
-addy      sec                 ; add y to text ptr
+addy      .block
+          sec                 ; add y to text ptr
           tya
           adc txt
           bcc f19
           inc txt+1
 f19       sta txt
           rts
+          .bend
 
-dectxt    dec txt             ; back up text ptr
+dectxt    .block
+          dec txt             ; back up text ptr
           lda txt
           cmp #$ff
           bne f20
           dec txt+1
 f20       rts
+          .bend
 
           ; convert ascii to screen code
-cnvscr    eor #128
+cnvscr    .block
+          eor #128
           bpl f21
           eor #128
           cmp #64
           bcc f21
           eor #64
 f21       rts
+          .bend
 
 reverse   pha                 ; reverse cursor char
           ldy #0
@@ -394,15 +427,18 @@ reverse   pha                 ; reverse cursor char
           pla
           rts
 
-testpos   lda txt+1           ; test position in text
+testpos   .block
+          lda txt+1           ; test position in text
           cmp end+1
           bcc f22
           bne f22
           lda txt
           cmp end
 f22       rts
+          .bend
 
-insert    lda end+1           ; insert one space
+insert    .block
+          lda end+1           ; insert one space
           pha
           lda end
           pha
@@ -423,8 +459,10 @@ f23       jsr testpos
           sta end
           pla
           sta end+1
+          .bend
 
-pshend    lda end+1           ; bump end ptr up
+pshend    .block
+          lda end+1           ; bump end ptr up
           cmp #>bufferend
           bcc f24
           lda end
@@ -434,11 +472,14 @@ f24       inc end
           bne r5
           inc end+1
 r5        rts
+          .bend
 
+          ; delete character before cursor
 deletechr lda #1
           sta num
           jsr left
-delete    lda txt+1           ; number of chars in num
+delete    .block
+          lda txt+1           ; number of chars in num
           pha
           lda txt
           pha
@@ -465,18 +506,23 @@ f25       jsr testpos
           bcs f26
           dec end+1
 f26       jmp window
+          .bend
 
+          ; insert line
 insertln  jsr insert          ; insert chr$(13)
           lda #13
-          bne f27
+          bne insrtspc.f27
 
-insrtspc  jsr insert          ; insert blank
+insrtspc  .block
+          jsr insert          ; insert blank
           lda #' '
 f27       sta (txt),y
           jmp window
+          .bend
 
           ; delete line
-deleteln  ror disflg          ; display off
+deleteln  .block
+          ror disflg          ; display off
           jsr findeoln
           tya
           bne f28
@@ -484,54 +530,69 @@ deleteln  ror disflg          ; display off
 f28       sty num
           jsr delete
           jmp setwindow
+          .bend
 
           ; long scroll down
-pagedown  ror disflg          ; no display
+pagedown  .block
+          ror disflg          ; no display
           ldx #rows-1         ; 23 lines
 b13       jsr down
           dex
           bne b13
           beq setwindow
+          .bend
 
           ; long scroll up
-pageup    ror disflg          ; no display
+pageup    .block
+          ror disflg          ; no display
           ldx #rows-1         ; 24 lines
 b14       jsr up
           dex
           bne b14
           beq setwindow
+          .bend
 
-pageleft  ror disflg
+pageleft  .block
+          ror disflg
           ldx #columns-1
 b15       jsr left
           dex
           bne b15
           beq setwindow
+          .bend
 
           ; scroll sideways to end of line
-pageright ror disflg          ; no display
+pageright .block
+          ror disflg          ; no display
           ldx #columns-1
 b16       jsr right
           dex
           bne b16
+          .bend
+
 setwindow lsr disflg
           jmp window          ; display
 
           ; set y=distance to text eol
-findeoln  ldy #$ff
+findeoln  .block
+          ldy #$ff
 b17       jsr testeoln
           bne b17
           rts
+          .bend
 
-testeoln  iny
+testeoln  .block
+          iny
           cpy #$ff
           beq f29
           lda (txt),y
           beq f29
           cmp #13
 f29       rts
+          .bend
 
-initialize lda #<bufferbeg
+initialize .block 
+          lda #<bufferbeg
           ldx #>bufferbeg
           sta end
           stx end+1
@@ -555,13 +616,16 @@ f31       ldx ptr+1
           ldx ptr
           cpx #<bufferend
           bcc b18
+          .bend          
+          
 initscr   lda #<screenbeg
           sta scr
           lda #>screenbeg
           sta scr+1
           rts
 
-statusline jsr message
+statusline .block 
+          jsr message
           .byte 19            ; (home)
           .text "column:"
           .byte 0
@@ -597,9 +661,11 @@ f32       tya
           .text "   "         ; 3 spaces
           .byte 0
           rts
+          .bend
 
           ; print in source messages
-message   ldy #0
+message   .block
+          ldy #0
           pla
           sta ptr
           pla
@@ -616,6 +682,7 @@ f34       lda ptr+1
           lda ptr
           pha
           rts
+.bend
 
           ; command entries
 commands  .byte 148
