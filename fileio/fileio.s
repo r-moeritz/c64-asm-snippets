@@ -9,7 +9,6 @@
           clrchn = $ffcc
           status = $90        
 
-          bufsz = $4000       ; size of text buffer: 16K
           bufptr = $fb        ; pointer to text buffer
           fnmptr = $fd        ; pointer to zero-terminated filename
 

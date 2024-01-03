@@ -3,13 +3,13 @@
         
           ; *** constants ***
           columns = 40        ; screen size
-          linesize = 250      ; max allowed
+          linesize = 80       ; max allowed chars/line
           screenbeg = $428    ; top of text scr
           screenend = $7e8    ; end of text scr
           rows = 24           ; screenend-screenbeg/columns
           bufferbeg = $0801   ; start of text buffer memory
           bufferend = $7fff   ; end of text buffer memory
-          commandnum = 39
+          commandnum = 42     ; size of commands table
         
           ; *** important memory ***
           vic = $d011
@@ -17,12 +17,24 @@
           bor = $d020
           rptkey = $28a
           input = $200
+          status = $90    
+          blnsw = $cc
+          blnct = $cd
+          blnon = $cf              
 
           ; *** rom routines ***
           getin = $ffe4
-          print = $ffd2
           ready = $e37b
           cnvrtdec = $bdcd
+          setlfs = $ffba
+          setnam = $ffbd
+          open = $ffc0
+          chkin = $ffc6
+          chkout = $ffc9
+          chrin = $ffcf
+          chrout = $ffd2
+          close = $ffc3
+          clrchn = $ffcc                             
 
           ; *** variables (zero-page) ***
           vars = $02
@@ -33,21 +45,25 @@
           cnt = $07           ; display line counter
           num = $08           ; general purpose
           disflg = $09        ; negative=no display
-          varnum = 8
+          varnum = 8   
+          nostatus = $50      ; disable status line update, 1=yes, 0=no
+          ysave = $51      
 
           ; *** pointers ***
-          ptr = $3d           ; utility pointer
-          top = $3f           ; top line of text window
           end = $2d           ; end of text
-          txt = $fd           ; current text position
+          ptr = $3d           ; utility pointer
+          top = $3f           ; top line of text window          
           scr = $fb           ; current screen position
+          txt = $fd           ; current text position          
+          bufptr = $4c        ; pointer to text buffer
+          fnmptr = $4e        ; pointer to zero-terminated filename                 
 
           ; *** beginning of code ***
           *= $c000
 
           ; program entry
 start     lda #$80            ; all keys repeat
-          sta rptkey
+          sta rptkey         
 
           lda #9
           sta vic             ; screen off
@@ -56,6 +72,9 @@ start     lda #$80            ; all keys repeat
           stx bor
           lda #12             ; light grey background
           sta bkg
+          
+          lda #0
+          sta nostatus        ; enable status line
           
           jsr message         ; y=0
           
@@ -77,7 +96,7 @@ b1        sta vars,x
 
           jsr initialize
           jsr window
-          .bend
+          .endblock
 
           ; main key scan loop
 getkey    .block
@@ -108,7 +127,7 @@ foundkey  lda commands+2,y    ; jump to routine
           lda commands+1,y
           pha
           rts
-          .bend
+          .endblock
 
           ; put character in text buffer
 put       .block
@@ -143,7 +162,7 @@ f3        txa
           sta (txt),y
           jsr cnvscr
           sta (scr),y
-          .bend
+          .endblock
 
           ; cursor right routine
 right     .block
@@ -167,7 +186,7 @@ f5        inc col
           inc scr+1
           
 r1        rts
-          .bend
+          .endblock
 
           ; cursor left routine
 left      .block
@@ -189,7 +208,7 @@ r2        rts
 
 b4        dec shift           ; scroll left
           jmp window
-          .bend
+          .endblock
           
           ; carriage return handling routine
 cret      jsr findeoln        ; handle carriage return
@@ -213,7 +232,7 @@ f7        lda row
           bne f8
           jmp topdown         ; scroll down
 f8        inc row
-          .bend
+          .endblock
 
 addrow    .block
           lda scr
@@ -223,7 +242,7 @@ addrow    .block
           inc scr+1
 f9        sta scr
           rts
-          .bend
+          .endblock
 
           ; cursor up routine
 up        .block
@@ -267,7 +286,7 @@ f13       lda row             ; top of screen check
           dec scr+1
 f14       sta scr
 r3        rts
-          .bend
+          .endblock
 
           ; move window up
 topup     .block
@@ -278,7 +297,7 @@ b6        dey
           beq newtop
           cmp #13
           bne b6
-          .bend
+          .endblock
 
 newtop    .block
           sec                 ; add y to top pointer
@@ -288,7 +307,7 @@ newtop    .block
           inc top+1
 f15       sta top
           jmp window
-          .bend
+          .endblock
 
           ; move window down
 topdown   .block
@@ -299,7 +318,7 @@ b7        iny
           cmp #13
           bne b7
           beq newtop
-          .bend
+          .endblock
 
           ; initialize for start of new line
 unshift   .block
@@ -318,7 +337,7 @@ f17       sta txt
           lda #0
           sta col
           sta shift
-          .bend
+          .endblock
 
           ; move text to screen window
 window    bit disflg          ; is display on
@@ -387,7 +406,7 @@ b10       sta (scr),y
           cpy #columns
           bcc b10
           bcs addscr          ; start next line
-          .bend
+          .endblock
 
 addy      .block
           sec                 ; add y to text ptr
@@ -397,7 +416,7 @@ addy      .block
           inc txt+1
 f19       sta txt
           rts
-          .bend
+          .endblock
 
 dectxt    .block
           dec txt             ; back up text ptr
@@ -406,7 +425,7 @@ dectxt    .block
           bne f20
           dec txt+1
 f20       rts
-          .bend
+          .endblock
 
           ; convert ascii to screen code
 cnvscr    .block
@@ -417,7 +436,7 @@ cnvscr    .block
           bcc f21
           eor #64
 f21       rts
-          .bend
+          .endblock
 
 reverse   pha                 ; reverse cursor char
           ldy #0
@@ -435,7 +454,7 @@ testpos   .block
           lda txt
           cmp end
 f22       rts
-          .bend
+          .endblock
 
 insert    .block
           lda end+1           ; insert one space
@@ -459,7 +478,7 @@ f23       jsr testpos
           sta end
           pla
           sta end+1
-          .bend
+          .endblock
 
 pshend    .block
           lda end+1           ; bump end ptr up
@@ -472,7 +491,7 @@ f24       inc end
           bne r5
           inc end+1
 r5        rts
-          .bend
+          .endblock
 
           ; delete character before cursor
 deletechr lda #1
@@ -506,7 +525,7 @@ f25       jsr testpos
           bcs f26
           dec end+1
 f26       jmp window
-          .bend
+          .endblock
 
           ; insert line
 insertln  jsr insert          ; insert chr$(13)
@@ -518,7 +537,7 @@ insrtspc  .block
           lda #' '
 f27       sta (txt),y
           jmp window
-          .bend
+          .endblock
 
           ; delete line
 deleteln  .block
@@ -530,7 +549,7 @@ deleteln  .block
 f28       sty num
           jsr delete
           jmp setwindow
-          .bend
+          .endblock
 
           ; long scroll down
 pagedown  .block
@@ -540,7 +559,7 @@ b13       jsr down
           dex
           bne b13
           beq setwindow
-          .bend
+          .endblock
 
           ; long scroll up
 pageup    .block
@@ -550,7 +569,7 @@ b14       jsr up
           dex
           bne b14
           beq setwindow
-          .bend
+          .endblock
 
 pageleft  .block
           ror disflg
@@ -559,7 +578,7 @@ b15       jsr left
           dex
           bne b15
           beq setwindow
-          .bend
+          .endblock
 
           ; scroll sideways to end of line
 pageright .block
@@ -568,7 +587,7 @@ pageright .block
 b16       jsr right
           dex
           bne b16
-          .bend
+          .endblock
 
 setwindow lsr disflg
           jmp window          ; display
@@ -579,7 +598,7 @@ findeoln  .block
 b17       jsr testeoln
           bne b17
           rts
-          .bend
+          .endblock
 
 testeoln  .block
           iny
@@ -589,7 +608,7 @@ testeoln  .block
           beq f29
           cmp #13
 f29       rts
-          .bend
+          .endblock
 
 initialize .block 
           lda #<bufferbeg
@@ -616,7 +635,7 @@ f31       ldx ptr+1
           ldx ptr
           cpx #<bufferend
           bcc b18
-          .bend          
+          .endblock          
           
 initscr   lda #<screenbeg
           sta scr
@@ -624,7 +643,9 @@ initscr   lda #<screenbeg
           sta scr+1
           rts
 
-statusline .block 
+statusline .block
+          lda nostatus
+          bne done            ; skip status line update
           jsr message
           .byte 19            ; (home)
           .text "column:"
@@ -660,8 +681,8 @@ f32       tya
           jsr message
           .text "   "         ; 3 spaces
           .byte 0
-          rts
-          .bend
+done      rts
+          .endblock
 
           ; print in source messages
 message   .block
@@ -675,15 +696,183 @@ b19       inc ptr
           inc ptr+1
 f33       lda (ptr),y
           beq f34
-          jsr print
+          jsr chrout
           bne b19
 f34       lda ptr+1
           pha
           lda ptr
           pha
           rts
-.bend
+          .endblock
 
+          ; ************* file i/o routines *************
+
+          ; open a seq or prg file and read all data into a buffer.
+          ; enter with fnmptr pointing at zero-terminated filename and
+          ; bufptr pointing at text buffer. upon return x and y will
+          ; hold end-of-buffer address.
+readbf    jsr openfl
+          jsr readfl
+          lda #1
+          jsr closfl
+          ldx bufptr
+          ldy bufptr+1
+          rts
+
+          ; open a seq or prg file and write all data from
+          ; zero-terminated buffer to the file. enter with fnmptr
+          ; pointing at zero-terminated filename and bufptr pointing at
+          ; text buffer.
+writbf    jsr openfl
+          jsr writfl
+          lda #1
+          jsr closfl
+          rts
+
+          ; open a seq or prg file for reading/writing. enter with
+          ; fnmptr pointing at zero-terminated filename.
+openfl    lda #1
+          ldx #8
+          ldy #2
+          jsr setlfs
+          jsr fnamsz
+          ldx fnmptr
+          ldy fnmptr+1
+          jsr setnam
+          jsr open
+          rts
+
+          ; read a character from a seq or prg file and store in buffer
+          ; whose address is in bufptr. enter with bufptr pointing at
+          ; text buffer.
+readfl    .block
+          ldx #1
+          jsr chkin
+          ldy #0
+loop      jsr chrin
+          sta (bufptr),y
+          inc bufptr
+          bne statck
+          inc bufptr+1
+statck    lda status
+          beq loop
+          rts
+          .endblock
+          
+          ; write a character to a seq or prg file from zero-terminated
+          ; buffer whose address is in bufptr. enter with bufptr
+          ; pointing at text buffer.
+writfl    .block    
+          ldx #1
+          jsr chkout
+          ldy #0
+loop      lda (bufptr),y
+          beq done
+          jsr chrout
+          inc bufptr
+          bne more
+          inc bufptr+1
+more      jmp loop
+done      rts
+          .endblock     
+
+          ; close the logical file specified in acc and restore device
+          ; values.
+closfl    jsr close
+          jmp clrchn
+
+          ; get size of filename. call with fnmptr set to point to
+          ; zero-terminated filename. upon return acc contains size of
+          ; filename.
+fnamsz    .block
+          ldx #0
+          ldy #0
+loop      lda (fnmptr),y
+          beq done
+          inx
+          inc fnmptr
+          bne more
+          inc fnmptr+1
+more      jmp loop
+done      txa
+          rts
+          .endblock
+          
+          ; ************* keyboard input *************
+txtcin    .block
+          ldy #0
+          sty blnsw          
+getkey    sty ysave
+wait      jsr getin
+          ldx #numbad
+ckloop    cmp badkey,x
+          beq wait
+          dex
+          bpl ckloop
+          ldy ysave
+          cmp #20
+          bne notdel
+          cpy #0
+          beq getkey
+          dey
+          dey
+notdel    cmp #13
+          beq prtit
+          cpy maxlen
+          beq getkey
+          sta input,y
+          iny
+prtit     ldx #1
+          stx blnct
+waitpr    ldx blnon
+          bne waitpr
+          sei                 ; disable irqs so cursor won't flash
+          
+          jsr chrout
+          cli                 ; re-enable irqs
+          cmp #13
+          bne getkey
+          lda #0
+          sta input,y
+          
+          lda #1
+          sta blnct
+waitbl    lda blnon
+          bne waitbl
+          lda #1
+          sta blnsw
+          rts
+          
+badkey    .byte 0              ; if no key, then wait
+
+          ; up, down, left, right, inst, home, clr
+          .byte $91, $11, $9d, $1d, $94, $13, $93 
+          
+          numbad = * - badkey - 1
+          
+maxlen    .byte 12            ; max length of input line
+          .endblock
+          
+          ; prompt for filename & read into memory
+loadfile  inc nostatus        ; suspend status line update
+
+          ; todo: clear status line
+
+          jsr message         ; prompt for filename          
+          .byte 19            ; (home)
+          .text "filename: "
+          .byte 0
+          
+          jsr txtcin          ; read filename from keyboard
+          
+          ; todo: set fnmptr
+          ; todo: call readbf
+          ; todo: clear status line 
+          
+          dec nostatus        ; resume status line updates
+          
+          rts
+          
           ; command entries
 commands  .byte 148
           .word insrtspc-1    ; ins     insert space after cursor
@@ -701,6 +890,8 @@ commands  .byte 148
           .word pageright-1   ; f5      page right
           .byte 139
           .word pageleft-1    ; f6      page left
+          .byte 136
+          .word loadfile-1    ; f7      load file
           .byte 3
           .word ready-1       ; run stop          exit
           .byte 17

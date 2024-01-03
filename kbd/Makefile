@@ -2,11 +2,13 @@
 OBJDIR := build
 SRC := kbd.s
 PRG := $(OBJDIR)/kbd.prg
+LAB := $(OBJDIR)/kbd.lab
+LST := $(OBJDIR)/kbd.lst
 D64 := $(OBJDIR)/kbd.d64
-ASM := java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler
+ASM := 64tass
 
 # Commands
-MKPRG = $(ASM) -odir $(OBJDIR) $(SRC) -bytedump
+MKPRG = $(ASM) -a -m -L $(LST) -l $(LAB) -o $(PRG) $(SRC)
 RM := rm -rf
 MKDIR := mkdir -p
 MKD64 = c1541 -format ed,ed d64 $@ $(foreach p,$(PRG),-write $(p) $(subst .prg,,$(subst build/,,$(p))))
