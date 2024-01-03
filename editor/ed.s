@@ -10,6 +10,7 @@
           bufferbeg = $0801   ; start of text buffer memory
           bufferend = $7fff   ; end of text buffer memory
           commandnum = 42     ; size of commands table
+          maxfnmlen = 12      ; max filename length
         
           ; *** important memory ***
           vic = $d011
@@ -54,9 +55,25 @@
           ptr = $3d           ; utility pointer
           top = $3f           ; top line of text window          
           scr = $fb           ; current screen position
-          txt = $fd           ; current text position          
-          bufptr = $4c        ; pointer to text buffer
-          fnmptr = $4e        ; pointer to zero-terminated filename                 
+          txt = $fd           ; current text position                    
+          fnmptr = $4c        ; pointer to zero-terminated filename                 
+          
+          ; *** macros ***
+          
+          ; clear status line
+clrstatus .macro          
+          jsr message
+          .byte $13, $93      ; home, clr
+          .byte 0
+          .endmacro
+
+          ; prompt for filename on status line 
+promptfnm .macro          
+          jsr message
+          .byte $13           ; home
+          .text "filename: "
+          .byte 0          
+          .endmacro
 
           ; *** beginning of code ***
           *= $c000
@@ -496,7 +513,7 @@ r5        rts
           ; delete character before cursor
 deletechr lda #1
           sta num
-          jsr left
+          jsr left          
 delete    .block
           lda txt+1           ; number of chars in num
           pha
@@ -709,19 +726,19 @@ f34       lda ptr+1
 
           ; open a seq or prg file and read all data into a buffer.
           ; enter with fnmptr pointing at zero-terminated filename and
-          ; bufptr pointing at text buffer. upon return x and y will
+          ; txt pointing at text buffer. upon return x and y will
           ; hold end-of-buffer address.
 readbf    jsr openfl
           jsr readfl
           lda #1
           jsr closfl
-          ldx bufptr
-          ldy bufptr+1
+          ldx txt
+          ldy txt+1
           rts
 
           ; open a seq or prg file and write all data from
           ; zero-terminated buffer to the file. enter with fnmptr
-          ; pointing at zero-terminated filename and bufptr pointing at
+          ; pointing at zero-terminated filename and txt pointing at
           ; text buffer.
 writbf    jsr openfl
           jsr writfl
@@ -743,35 +760,35 @@ openfl    lda #1
           rts
 
           ; read a character from a seq or prg file and store in buffer
-          ; whose address is in bufptr. enter with bufptr pointing at
+          ; whose address is in txt. enter with txt pointing at
           ; text buffer.
 readfl    .block
           ldx #1
           jsr chkin
           ldy #0
 loop      jsr chrin
-          sta (bufptr),y
-          inc bufptr
+          sta (txt),y
+          inc txt
           bne statck
-          inc bufptr+1
+          inc txt+1
 statck    lda status
           beq loop
           rts
           .endblock
           
           ; write a character to a seq or prg file from zero-terminated
-          ; buffer whose address is in bufptr. enter with bufptr
+          ; buffer whose address is in txt. enter with txt
           ; pointing at text buffer.
 writfl    .block    
           ldx #1
           jsr chkout
           ldy #0
-loop      lda (bufptr),y
+loop      lda (txt),y
           beq done
           jsr chrout
-          inc bufptr
+          inc txt
           bne more
-          inc bufptr+1
+          inc txt+1
 more      jmp loop
 done      rts
           .endblock     
@@ -799,6 +816,10 @@ done      txa
           .endblock
           
           ; ************* keyboard input *************
+          
+          ; read input from keyboard until enter key is pressed
+          ; (allow up to 12 characters to be entered)          
+          ; and store in buffer at $200, terminate with a 0.
 txtcin    .block
           ldy #0
           sty blnsw          
@@ -818,7 +839,7 @@ ckloop    cmp badkey,x
           dey
 notdel    cmp #13
           beq prtit
-          cpy maxlen
+          cpy #maxfnmlen
           beq getkey
           sta input,y
           iny
@@ -850,28 +871,40 @@ badkey    .byte 0              ; if no key, then wait
           
           numbad = * - badkey - 1
           
-maxlen    .byte 12            ; max length of input line
+          .endblock
+          
+copyfnm   .block
+          ldx #0
+loop      lda input,x          
+          sta filename,x
+          beq done
+          inx
+          jmp loop
+done      rts
           .endblock
           
           ; prompt for filename & read into memory
-loadfile  inc nostatus        ; suspend status line update
-
-          ; todo: clear status line
-
-          jsr message         ; prompt for filename          
-          .byte 19            ; (home)
-          .text "filename: "
-          .byte 0
+loadfile  inc nostatus        ; suspend status line update          
+          #clrstatus          ; clear status line
+          #promptfnm          ; prompt for filename                     
+          jsr txtcin          ; read filename from keyboard          
+          jsr copyfnm         ; copy filename
           
-          jsr txtcin          ; read filename from keyboard
+          ; set file name pointer
+          lda #<filename
+          sta fnmptr
+          lda #>filename
+          sta fnmptr+1
           
-          ; todo: set fnmptr
-          ; todo: call readbf
-          ; todo: clear status line 
+          jsr readbf          ; read file into memory          
+          jsr initialize      ; reset cursor, text pointer, etc.      
           
+          #clrstatus          ; clear status line           
           dec nostatus        ; resume status line updates
           
           rts
+          
+filename  .fill maxfnmlen+1
           
           ; command entries
 commands  .byte 148
