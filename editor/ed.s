@@ -90,6 +90,12 @@ start     lda #$80            ; all keys repeat
           lda #12             ; light grey background
           sta bkg
           
+          ; set file name pointer
+          lda #<filename
+          sta fnmptr
+          lda #>filename
+          sta fnmptr+1          
+          
           lda #0
           sta nostatus        ; enable status line
           
@@ -802,16 +808,12 @@ closfl    jsr close
           ; zero-terminated filename. upon return acc contains size of
           ; filename.
 fnamsz    .block
-          ldx #0
           ldy #0
 loop      lda (fnmptr),y
           beq done
-          inx
-          inc fnmptr
-          bne more
-          inc fnmptr+1
+          iny
 more      jmp loop
-done      txa
+done      tya
           rts
           .endblock
           
@@ -874,11 +876,11 @@ badkey    .byte 0              ; if no key, then wait
           .endblock
           
 copyfnm   .block
-          ldx #0
-loop      lda input,x          
-          sta filename,x
+          ldy #0
+loop      lda input,y          
+          sta (fnmptr),y
           beq done
-          inx
+          iny
           jmp loop
 done      rts
           .endblock
@@ -888,14 +890,9 @@ loadfile  inc nostatus        ; suspend status line update
           #clrstatus          ; clear status line
           #promptfnm          ; prompt for filename                     
           jsr txtcin          ; read filename from keyboard          
-          jsr copyfnm         ; copy filename
+          jsr copyfnm         ; copy filename                    
           
-          ; set file name pointer
-          lda #<filename
-          sta fnmptr
-          lda #>filename
-          sta fnmptr+1
-          
+          jsr initialize      ; reset cursor, text pointer, etc. 
           jsr readbf          ; read file into memory          
           jsr initialize      ; reset cursor, text pointer, etc.      
           
