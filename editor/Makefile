@@ -1,6 +1,6 @@
 # Paths
 OBJDIR := build
-SRC := ed.s
+SRC := ed.asm
 PRG := $(OBJDIR)/ed.prg
 LAB := $(OBJDIR)/ed.lab
 LST := $(OBJDIR)/ed.lst

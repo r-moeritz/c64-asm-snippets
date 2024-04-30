@@ -1,6 +1,6 @@
 # Paths
 OBJDIR := build
-SRC := fileio.s
+SRC := fileio.asm
 PRG := $(OBJDIR)/fileio.prg
 LST := $(OBJDIR)/fileio.lst
 LAB := $(OBJDIR)/fileio.lab

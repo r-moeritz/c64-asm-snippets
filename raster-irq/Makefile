@@ -1,18 +1,17 @@
 # Paths
 OBJDIR := build
-ASM := ras64.s
-BAS := demo.bas
-BIN := $(OBJDIR)/ras64.bin
-PRG := $(OBJDIR)/demo
-D64 := $(OBJDIR)/ras64-demo.d64
+SRC := ras64.asm
+PRG := $(OBJDIR)/ras64.prg
+LAB := $(OBJDIR)/ras64.lab
+LST := $(OBJDIR)/ras64.lst
+D64 := $(OBJDIR)/ras64.d64
+ASM := 64tass
 
 # Commands
-MKPRG = petcat -w2 -o $@ -- $<
-MKBIN = java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler -odir $(OBJDIR) -o -bytedump $@ $<
+MKPRG = $(ASM) -a -m -L $(LST) -l $(LAB) --vice-labels -o $(PRG) $(SRC)
 RM := rm -rf
-CP = cp $< $@
 MKDIR := mkdir -p
-MKD64 = c1541 -format ras64-demo,md d64 $@ -attach $@ $(foreach p,$^,-write $(p) $(subst build/,,$(p)))
+MKD64 = c1541 -format ed,ed d64 $@ $(foreach p,$(PRG),-write $(p) $(subst .prg,,$(subst build/,,$(p))))
 
 # Targets
 .PHONY: all clean
@@ -20,20 +19,16 @@ MKD64 = c1541 -format ras64-demo,md d64 $@ -attach $@ $(foreach p,$^,-write $(p)
 all: $(D64)
 
 $(PRG): | $(OBJDIR)
-$(BIN): | $(OBJDIR)
 
 $(OBJDIR):
 	$(MKDIR) $(OBJDIR)
 
 clean:
-	$(RM) $(OBJDIR)
+	$(RM) $(OBJDIR) *.o
 
 # Rules
-$(PRG): $(BAS)
+$(PRG): $(SRC)
 	$(MKPRG)
 
-$(BIN): $(ASM)
-	$(MKBIN)
-
-$(D64): $(PRG) $(BIN) $(SPTBIN)
+$(D64): $(PRG)
 	$(MKD64)
