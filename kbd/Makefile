@@ -1,6 +1,6 @@
 # Paths
 OBJDIR := build
-SRC := kbd.s
+SRC := kbd.asm
 PRG := $(OBJDIR)/kbd.prg
 LAB := $(OBJDIR)/kbd.lab
 LST := $(OBJDIR)/kbd.lst
