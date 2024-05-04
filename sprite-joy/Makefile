@@ -1,18 +1,20 @@
 # Paths
 OBJDIR := build
-SRC := sprites.s
-PRG := $(OBJDIR)/sprites.prg
-D64 := $(OBJDIR)/sprites.d64
+SRC := spritejoy.asm
+PRG := $(OBJDIR)/spritejoy.prg
+LAB := $(OBJDIR)/spritejoy.lab
+LST := $(OBJDIR)/spritejoy.lst
+D64 := $(OBJDIR)/spritejoy.d64
+ASM := 64tass
 
 # Commands
-MKPRG = java -cp "$(HOME)/Programs/KickAssembler/*" kickass.KickAssembler -odir $(OBJDIR) -bytedump $(SRC)
+MKPRG = $(ASM) -a -m -L $(LST) -l $(LAB) --vice-labels -o $(PRG) $(SRC)
 RM := rm -rf
 MKDIR := mkdir -p
-MKD64 = c1541 -format routines,routines d64 $@ $(foreach p,$(PRG),-write $(p) $(subst .prg,,$(subst build/,,$(p))))
-X64 := x64sc
+MKD64 = c1541 -format ed,ed d64 $@ $(foreach p,$(PRG),-write $(p) $(subst .prg,,$(subst build/,,$(p))))
 
 # Targets
-.PHONY: all clean run
+.PHONY: all clean
 
 all: $(D64)
 
@@ -22,10 +24,7 @@ $(OBJDIR):
 	$(MKDIR) $(OBJDIR)
 
 clean:
-	$(RM) $(OBJDIR)
-
-run: $(PRG)
-	$(X64) $(PRG)
+	$(RM) $(OBJDIR) *.o
 
 # Rules
 $(PRG): $(SRC)
