@@ -210,11 +210,9 @@ djr3            lsr
                 ; sprite 2 coordinates
 sp2posx         .word $0000
 sp2posy         .byte $00
-
-; skip some bytes to ensure sp2data address is divisible by 64
-* += $0d
         
                 ; balloon sprite
+                .align 64
 sp2data         .byte 0,127,0,1,255,192,3,255,224,3,231,224
                 .byte 7,217,240,7,223,240,7,217,240,3,231,224
                 .byte 3,255,224,3,255,224,2,255,160,1,127,64
